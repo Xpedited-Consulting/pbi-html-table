@@ -50,11 +50,19 @@ class TableSettings extends FormattingSettingsCard {
         name: "sorting", // Property name from capabilities.json
         displayName: "Column sorting",
         value: true
-    })
+    });
+
+    fallbackImage = new formattingSettings.TextInput({
+        name: "fallbackImage", // Property name from capabilities.json
+        displayName: "Fallback image",
+        value: "",
+        placeholder: "Image URL",
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
+    });
 
     name: string = "table"; // Object name from capabilities.json
     displayName: string = "Table";
-    slices: Array<FormattingSettingsSlice> = [this.sorting];
+    slices: Array<FormattingSettingsSlice> = [this.sorting, this.fallbackImage];
 }
 
 class PaginationSettings extends FormattingSettingsCard {
@@ -70,7 +78,8 @@ class PaginationSettings extends FormattingSettingsCard {
         options: {
             minValue: { value: 1, type: powerbi.visuals.ValidatorType.Min }
         },
-        value: 10
+        value: 10,
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     })
 
     name: string = "pagination"; // Object name from capabilities.json

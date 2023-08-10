@@ -146,7 +146,12 @@ export class Visual implements IVisual {
 
         const elType = valueType.ValueType.fromDescriptor(definition.type);
         if (elType.misc && (elType.misc.image || elType.misc.imageUrl)) {
-            return create("img").attr("src", value.toString()).node()
+            const fallbackImg = this.formattingSettings.tableSettings.fallbackImage.value;
+
+            return create("img")
+                .attr("src", value.toString())
+                .attr("onerror", () => fallbackImg ? `this.onerror=null;this.src='${fallbackImg}'` : '')
+                .node()
         }
 
         return create("span").html(value.toString()).node();
