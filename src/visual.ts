@@ -102,24 +102,8 @@ export class Visual implements IVisual {
     }
 
     public update(options: VisualUpdateOptions): void {
-        this.updateInternal(options, visualTransform(options.dataViews));
+        this.updateInternal(options, visualTransform(options.dataViews), true);
     }
-
-    private stripHtml(val) {
-        return val.replace( /(<([^>]+)>)/ig, '');
-    }
-
-    private getSortValue(columnValue) {
-        var tmpDiv = document.createElement('div');
-        tmpDiv.innerHTML = columnValue
-     
-       var children = tmpDiv.children;
-       if (children.length > 0) {
-           return children[0].getAttribute('data-sort-value') || this.stripHtml(columnValue);
-       }
-     
-       return this.stripHtml(columnValue);
-     }
 
     private setSortColumn(sortIdentifier: string, queryName: string) {
         if (this.sortColumn == sortIdentifier) {
@@ -144,11 +128,20 @@ export class Visual implements IVisual {
 
     private replaceNullWithEmptyString(val) {
         return val === "null" ? '' : val;
+    
+    }
+    private renderEmptyState() {
+        this.resetHtml();
+
+        this.target
+          .append("div")
+          .html('<div><img src="https://placehold.co/300x200"/> <h1>No results found</h1><p>Please check your filters.</p></div>')
+            .attr("class", "empty-state");
     }
 
     private createElement(el) {
         const definition: powerbi.DataViewMetadataColumn = el.definition;
-        const value = (el.value + "").trim();
+        const value = el.value;
 
         const elType = valueType.ValueType.fromDescriptor(definition.type);
         if (this.isImg(value) || (elType.misc && (elType.misc.image || elType.misc.imageUrl))) {
@@ -191,7 +184,7 @@ export class Visual implements IVisual {
     }
 
 
-    public updateInternal(options: VisualUpdateOptions, viewModel: VisualViewModel): void {
+    public updateInternal(options: VisualUpdateOptions, viewModel: VisualViewModel, hasNewData: boolean = false): void {
         if (!viewModel) {
             return;
         }
@@ -202,29 +195,47 @@ export class Visual implements IVisual {
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews);
         this.updateContainerViewports(options.viewport);
 
+        const roleIndex = (col: powerbi.DataViewMetadataColumn) => {
+            if ("dataset" in col["rolesIndex"]) {
+                const dSetIdxs = col["rolesIndex"]["dataset"];
+                return .0 + dSetIdxs[0];
+            }
+            return Number.MAX_SAFE_INTEGER;
+        } 
+
         let data = options.dataViews[0].table;
         let rows = data.rows;
         let columns = data.columns;
         let pageStart = 0;
 
-        let validRows = (_, idx) => columns[idx].roles["dataset"] === true;
-        let sortColumns = data.columns.filter(x => x.roles["sort"] === true);
+        const sortColumns = data.columns.filter(x => x.roles["sort"] === true);
 
         if (this.formattingSettings.paginationSettings.paginationEnabled.value)
         {
             let pageSize = this.formattingSettings.paginationSettings.pagination.value;
             pageStart = this.currentPage * pageSize;
-            rows = rows.slice(pageStart, pageStart + pageSize)
+            rows = rows.slice(pageStart, pageStart + pageSize);
         }
 
-        //this.table.html("<pre>"+JSON.stringify(data, void 0, 2));
+        if (!data.rows.length) {
+            this.renderEmptyState();
+            return;
+        }
+
         let _this = this;
 
-        //const behaviorOptions: Behavior = {};
+        const tHeadData = columns
+            // Retrieve roleIndex for the correct order
+            .map(col => ({ col, "idx": roleIndex(col) }))
+            // Order based on that index
+            .sort((a,b) => a.idx - b.idx)
+            // Only keep rows that are part of Dataset
+            .filter(x => x.idx < Number.MAX_SAFE_INTEGER)
+            .map(x => x.col);
 
         this.tHead
             .selectAll("th")
-            .data(columns.filter(validRows))
+            .data(tHeadData)
             .enter().append("th")
             .text(d => d.displayName)
             .classed("sorted-asc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Ascending)
@@ -249,7 +260,7 @@ export class Visual implements IVisual {
                     .withTable(data, idx)
                     .createSelectionId();
                 
-                return { idx: idx, row: r, selectionId: selectionID };
+                return { row: r, selectionId: selectionID };
             }))
             .enter().append("tr")
             .on("click", (ev, d) => {
@@ -258,10 +269,18 @@ export class Visual implements IVisual {
 
                 select(ev.currentTarget.parentNode)
                     .selectAll("tr")
-                    .classed("selected", function (x: { selectionId: ISelectionId }) {return _this.selectionManager.getSelectionIds().includes(x.selectionId) });
+                    .classed("selected", (x: { selectionId: ISelectionId }) => _this.selectionManager.getSelectionIds().includes(x.selectionId));
             })
             .selectAll("td")
-            .data(d => [...d.row].filter(validRows).map(function(r, idx) {return {"definition": data.columns[idx], "value": r}; }))
+            .data(d => 
+                d.row.map((r, idx) => {
+                    let col = data.columns[idx];
+                    let colIdx = roleIndex(col);
+                    return {"definition": col, "value": r, "idx": colIdx };
+                })
+                .sort((a, b) => a.idx - b.idx)
+                .filter(x => x.idx < Number.MAX_SAFE_INTEGER)
+            )
             .enter()
             .append("td")
             .append(d => this.createElement(d));
