@@ -3,27 +3,39 @@
         {
             "displayName": "Dataset",
             "name": "dataset",
-            "kind": "GroupingOrMeasure"
+            "kind": "GroupingOrMeasure",
+            "description": "Columns to should be part of the table."
         },
         {
-            "displayName": "Highlighted columns",
-            "name": "highlighted",
+            "displayName": "Identity (optional)",
+            "name": "identity",
             "kind": "GroupingOrMeasure",
-            "description": "Columns to show when row is selected"
+            "description": "Optional identifier which will be hidden in the table, but can be used for drill down purposes"
+        },
+        {
+            "displayName": "Sort keys (optional)",
+            "name": "sort",
+            "kind": "GroupingOrMeasure",
+            "description": "Columns matching the name in Dataset will use value given here as sort key. Example field with display name in dataset 'Price' can be formatted with currency sign and additional properties, such that it is interpreted by Power Bi as an string. The actual value however is a number, to ensure that sorting works based on that underlying value if the value backing field is part of this set and their display names are exactly matching this field will be used for sorting."
         }
     ],
+    "drilldown": {
+        "roles": [ "identity" ]
+    },
     "dataViewMappings": [
         {
             "table": {
                 "rows": {
-                    "for": {
-                        "in": "dataset"
-                    },
+                    "select": [
+                        { "for": { "in": "dataset" } },
+                        { "bind": { "to": "identity" } },
+                        { "bind": { "to": "sort" } }
+                    ],
                     "dataReductionAlgorithm": {
                         "top": { "count": 30000 }
                     }
                 }
-            }    
+            }
         }
     ],
     "objects": {
@@ -147,6 +159,11 @@
         {
             "name": "ExportContent",
             "essential": false
+        },
+        {
+            "name": "WebAccess",
+            "essential": true,
+            "parameters": [ "*" ]
         }
     ]
 }

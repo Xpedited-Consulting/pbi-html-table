@@ -49,6 +49,7 @@ import ISelectionId = powerbi.extensibility.ISelectionId;
 
 import { VisualFormattingSettingsModel } from "./settings";
 import { CategoryViewModel, VisualViewModel } from "./visualViewModel";
+import { EditorView } from "codemirror"
 
 "use strict";
 
@@ -71,6 +72,7 @@ export class Visual implements IVisual {
     private formattingSettingsService: FormattingSettingsService;
     private host: IVisualHost;
     private interactivity: interactivityBaseService.IInteractivityService<VisualDataPoint>;
+    private editor: EditorView;
 
     constructor(options: VisualConstructorOptions) {
         this.formattingSettingsService = new FormattingSettingsService();
@@ -82,6 +84,10 @@ export class Visual implements IVisual {
             .classed("powerbi-demo-wrapper", true);
 
         this.resetHtml();
+    }
+
+    private isImg(str) {
+        return str.match(/\.(jpg|jpeg|png|gif|svg)$/i);
     }
 
     private resetHtml() {
@@ -115,14 +121,14 @@ export class Visual implements IVisual {
        return this.stripHtml(columnValue);
      }
 
-    private setSortColumn(queryName: string) {
-        if (this.sortColumn == queryName) {
+    private setSortColumn(sortIdentifier: string, queryName: string) {
+        if (this.sortColumn == sortIdentifier) {
             this.sortDirection = this.sortDirection == powerbi.SortDirection.Ascending
                 ? powerbi.SortDirection.Descending
                 : powerbi.SortDirection.Ascending;
         }
         else {
-            this.sortColumn = queryName;
+            this.sortColumn = sortIdentifier;
             this.sortDirection = powerbi.SortDirection.Ascending;
         }
 
@@ -142,19 +148,19 @@ export class Visual implements IVisual {
 
     private createElement(el) {
         const definition: powerbi.DataViewMetadataColumn = el.definition;
-        const value: powerbi.DataViewTableRow = el.value;
+        const value = (el.value + "").trim();
 
         const elType = valueType.ValueType.fromDescriptor(definition.type);
-        if (elType.misc && (elType.misc.image || elType.misc.imageUrl)) {
+        if (this.isImg(value) || (elType.misc && (elType.misc.image || elType.misc.imageUrl))) {
             const fallbackImg = this.formattingSettings.tableSettings.fallbackImage.value;
-
             return create("img")
+                .attr("alt", value.toString())
                 .attr("src", value.toString())
                 .attr("onerror", () => fallbackImg ? `this.onerror=null;this.src='${fallbackImg}'` : '')
                 .node()
         }
 
-        return create("span").html(value.toString()).node();
+        return create("span").html(value).node();
     }
     
     private generatePaginationItems() {
@@ -198,10 +204,17 @@ export class Visual implements IVisual {
 
         let data = options.dataViews[0].table;
         let rows = data.rows;
+        let columns = data.columns;
+        let pageStart = 0;
+
+        let validRows = (_, idx) => columns[idx].roles["dataset"] === true;
+        let sortColumns = data.columns.filter(x => x.roles["sort"] === true);
+
         if (this.formattingSettings.paginationSettings.paginationEnabled.value)
         {
             let pageSize = this.formattingSettings.paginationSettings.pagination.value;
-            rows = rows.slice(this.currentPage * pageSize, this.currentPage * pageSize + pageSize)
+            pageStart = this.currentPage * pageSize;
+            rows = rows.slice(pageStart, pageStart + pageSize)
         }
 
         //this.table.html("<pre>"+JSON.stringify(data, void 0, 2));
@@ -211,16 +224,27 @@ export class Visual implements IVisual {
 
         this.tHead
             .selectAll("th")
-            .data(data.columns)
+            .data(columns.filter(validRows))
             .enter().append("th")
             .text(d => d.displayName)
             .classed("sorted-asc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Ascending)
             .classed("sorted-desc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Descending)
-            .on('click', function(ev, d) { _this.setSortColumn(d.queryName); });
+            .on('click', function(ev, d) { 
+                let queryName = d.queryName;
+                if (sortColumns) {
+                    const alternativeSortKey = sortColumns.find(x => x.displayName == d.displayName);
+                    if (alternativeSortKey) {
+                        queryName = alternativeSortKey.queryName;
+                    }
+                }
+                
+                _this.setSortColumn(d.queryName, queryName); 
+            });
 
         this.tBody
             .selectAll("tr")
-            .data(rows.map(function(r, idx) {
+            .data(rows.map(function(r, ix) {
+                let idx = ix + pageStart;
                 const selectionID: ISelectionId = _this.host.createSelectionIdBuilder()
                     .withTable(data, idx)
                     .createSelectionId();
@@ -237,7 +261,7 @@ export class Visual implements IVisual {
                     .classed("selected", function (x: { selectionId: ISelectionId }) {return _this.selectionManager.getSelectionIds().includes(x.selectionId) });
             })
             .selectAll("td")
-            .data(d => [...d.row].map(function(r, idx) {return {"definition": data.columns[idx], "value": r}; }))
+            .data(d => [...d.row].filter(validRows).map(function(r, idx) {return {"definition": data.columns[idx], "value": r}; }))
             .enter()
             .append("td")
             .append(d => this.createElement(d));
@@ -253,7 +277,7 @@ export class Visual implements IVisual {
                 .append("button")
                   .attr("class", function (d) { return d.value == _this.currentPage ? "btn-pagination current" : "btn-pagination"; })
                 .html(function (d) { return d.label; })
-                .on('click', function(d) { _this.currentPage = d.value; _this.updateInternal(options, viewModel); });
+                .on('click', function(ev, d) { _this.currentPage = d.value; _this.updateInternal(options, viewModel); });
         }
     }
 
