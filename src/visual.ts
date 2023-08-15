@@ -141,14 +141,17 @@ export class Visual implements IVisual {
 
     private createElement(el) {
         const definition: powerbi.DataViewMetadataColumn = el.definition;
-        const value = el.value;
+        if (el.value === null)
+            return create("span").node();
+        
+        const value = el.value.toString();
 
         const elType = valueType.ValueType.fromDescriptor(definition.type);
         if (this.isImg(value) || (elType.misc && (elType.misc.image || elType.misc.imageUrl))) {
             const fallbackImg = this.formattingSettings.tableSettings.fallbackImage.value;
             return create("img")
-                .attr("alt", value.toString())
-                .attr("src", value.toString())
+                .attr("alt", value)
+                .attr("src", value)
                 .attr("onerror", () => fallbackImg ? `this.onerror=null;this.src='${fallbackImg}'` : '')
                 .node()
         }
@@ -214,6 +217,12 @@ export class Visual implements IVisual {
         {
             let pageSize = this.formattingSettings.paginationSettings.pagination.value;
             pageStart = this.currentPage * pageSize;
+
+            // If the dataset changes and the amount of pages is less than the current page, reset it to the first page
+            if (pageStart >= rows.length) {
+                this.currentPage = pageStart = 0;
+            }
+
             rows = rows.slice(pageStart, pageStart + pageSize);
         }
 
