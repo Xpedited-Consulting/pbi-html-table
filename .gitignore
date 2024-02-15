@@ -1,3 +1,4 @@
 ﻿.tmp
 node_modules
 webpack.statistics.dev.html
+dist

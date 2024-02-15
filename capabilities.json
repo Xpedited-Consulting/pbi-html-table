@@ -131,7 +131,22 @@
                         "bool": true
                     }
                 },
+                "dataSelectable": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "header": {
+                    "type": {
+                        "bool": true
+                    }
+                },
                 "fallbackImage": {
+                    "type": {
+                        "text": true
+                    }
+                },
+                "emptyStateHtml": {
                     "type": {
                         "text": true
                     }
@@ -143,6 +158,11 @@
             "properties": {
                 "show": { "type": { "bool": true }},
                 "pageSize": {
+                    "type": {
+                        "integer": true
+                    }
+                },
+                "paginationItemCount": {
                     "type": {
                         "integer": true
                     }

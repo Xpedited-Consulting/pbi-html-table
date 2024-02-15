@@ -135,8 +135,9 @@ export class Visual implements IVisual {
 
         this.target
           .append("div")
-          .html('<div><img src="https://placehold.co/300x200"/> <h1>No results found</h1><p>Please check your filters.</p></div>')
-            .attr("class", "empty-state");
+          .attr("class", "empty-state")
+          .append("div")
+          .html(this.formattingSettings.tableSettings.emptyStateHtml.value || this.formattingSettings.tableSettings.emptyStateHtml.placeholder);
     }
 
     private createElement(el) {
@@ -162,18 +163,37 @@ export class Visual implements IVisual {
     private generatePaginationItems() {
         let currentPage = this.currentPage;
         let lastPage = this.totalPages;
+        let nButtons = this.formattingSettings.paginationSettings.paginationItemCount.value;
 
-        let availableItems: { label: any; value: number; }[] = [
+        let availableItems: { label: any; value: number; }[] = [];/*[
             { label: currentPage - 1, value: currentPage - 2 },
             { label: currentPage, value: currentPage - 1 },
             { label: currentPage + 1, value: currentPage },
             { label: currentPage + 2, value: currentPage + 1 },
             { label: currentPage + 3, value: currentPage + 2 },
-        ];
+        ];*/
+
+        availableItems.push({
+            label: currentPage + 1,
+            value: currentPage
+        });
+
+        let i = 0;
+        for (i = 1; i < nButtons; i++) {
+            availableItems.push({
+                label: currentPage + i + 1,
+                value: currentPage + i
+            });
+            availableItems.push({
+                label: currentPage - i + 1,
+                value: currentPage - i
+            });
+            console.log(availableItems);
+        }
 
         availableItems = availableItems.filter(function(item) { return item.value >= 0 && item.value <= lastPage; });
         availableItems.sort(function (a, b) { return (b.value - currentPage) - (a.value - currentPage); });
-        availableItems = availableItems.slice(0, 3);
+        availableItems = availableItems.slice(0, nButtons);
         availableItems.sort(function (a,b) { return a.value - b.value; });
 
         if (currentPage < lastPage) {
@@ -242,24 +262,37 @@ export class Visual implements IVisual {
             .filter(x => x.idx < Number.MAX_SAFE_INTEGER)
             .map(x => x.col);
 
-        this.tHead
-            .selectAll("th")
-            .data(tHeadData)
-            .enter().append("th")
-            .text(d => d.displayName)
-            .classed("sorted-asc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Ascending)
-            .classed("sorted-desc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Descending)
-            .on('click', function(ev, d) { 
-                let queryName = d.queryName;
-                if (sortColumns) {
-                    const alternativeSortKey = sortColumns.find(x => x.displayName == d.displayName);
-                    if (alternativeSortKey) {
-                        queryName = alternativeSortKey.queryName;
+        if (this.formattingSettings.tableSettings.header.value) {
+            this.tHead
+                .selectAll("th")
+                .data(tHeadData)
+                .enter().append("th")
+                .text(d => d.displayName)
+                .classed("sorted-asc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Ascending)
+                .classed("sorted-desc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Descending)
+                .on('click', function(ev, d) { 
+                    let queryName = d.queryName;
+                    if (sortColumns) {
+                        const alternativeSortKey = sortColumns.find(x => x.displayName == d.displayName);
+                        if (alternativeSortKey) {
+                            queryName = alternativeSortKey.queryName;
+                        }
                     }
-                }
-                
-                _this.setSortColumn(d.queryName, queryName); 
-            });
+                    _this.host.persistProperties({
+                        merge: [
+                            {
+                                objectName: "filterSetting",
+                                selector: undefined, 
+                                properties: {
+                                    queryName: queryName
+                                }
+                            }
+                        ]
+                    });
+                    
+                    _this.setSortColumn(d.queryName, queryName); 
+                });
+        }
 
         this.tBody
             .selectAll("tr")
@@ -273,12 +306,14 @@ export class Visual implements IVisual {
             }))
             .enter().append("tr")
             .on("click", (ev, d) => {
-                const mouseEvent: MouseEvent = ev as MouseEvent;
-                _this.selectionManager.select(d.selectionId);
+                if (this.formattingSettings.tableSettings.dataSelectable.value) {
+                    const mouseEvent: MouseEvent = ev as MouseEvent;
+                    _this.selectionManager.select(d.selectionId);
 
-                select(ev.currentTarget.parentNode)
-                    .selectAll("tr")
-                    .classed("selected", (x: { selectionId: ISelectionId }) => _this.selectionManager.getSelectionIds().includes(x.selectionId));
+                    select(ev.currentTarget.parentNode)
+                        .selectAll("tr")
+                        .classed("selected", (x: { selectionId: ISelectionId }) => _this.selectionManager.getSelectionIds().includes(x.selectionId));
+                }
             })
             .selectAll("td")
             .data(d => 
@@ -320,10 +355,6 @@ export class Visual implements IVisual {
 
     private round(x, n) {
         return n == null ? Math.round(x) : Math.round(x * (n = Math.pow(10, n))) / n;
-    }
-
-    private format(d: number): string {
-        return formatPrefix("d", this.round(d, 2))(d);
     }
 
     /**

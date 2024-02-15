@@ -52,6 +52,20 @@ class TableSettings extends FormattingSettingsCard {
         value: true
     });
 
+    header = new formattingSettings.ToggleSwitch({
+        name: "header",
+        displayName: "Header row visible",
+        description: "Toggle which indicates whether the table has a header row.",
+        value: true
+    });
+
+    dataSelectable = new formattingSettings.ToggleSwitch({
+        name: "dataSelectable",
+        displayName: "Table row selectable",
+        description: "Toggle which indicates whether the table rows are selectable and applies cross filtering for other visuals.",
+        value: true
+    });
+
     fallbackImage = new formattingSettings.TextInput({
         name: "fallbackImage", // Property name from capabilities.json
         displayName: "Fallback image",
@@ -60,9 +74,18 @@ class TableSettings extends FormattingSettingsCard {
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     });
 
+    emptyStateHtml = new formattingSettings.TextArea({
+        name: "emptyStateHtml", // Property name from capabilities.json
+        displayName: "Empty state HTML",
+        value: "No results found",
+        placeholder: "No results found",
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
+    });
+
+
     name: string = "table"; // Object name from capabilities.json
     displayName: string = "Table";
-    slices: Array<FormattingSettingsSlice> = [this.sorting, this.fallbackImage];
+    slices: Array<FormattingSettingsSlice> = [this.header, this.dataSelectable, this.sorting, this.fallbackImage, this.emptyStateHtml];
 }
 
 class PaginationSettings extends FormattingSettingsCard {
@@ -72,6 +95,16 @@ class PaginationSettings extends FormattingSettingsCard {
         topLevelToggle: true,
         value: false
     })
+    paginationItemCount = new formattingSettings.NumUpDown({
+        name: "paginationItemCount", // Property name from capabilities.json
+        displayName: "Pagination item count",
+        options: {
+            minValue: { value: 0, type: powerbi.visuals.ValidatorType.Min },
+            maxValue: { value: 10, type: powerbi.visuals.ValidatorType.Max }
+        },
+        value: 3,
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
+    });
     pagination = new formattingSettings.NumUpDown({
         name: "pageSize", // Property name from capabilities.json
         displayName: "Page size",
@@ -84,7 +117,7 @@ class PaginationSettings extends FormattingSettingsCard {
 
     name: string = "pagination"; // Object name from capabilities.json
     displayName: string = "Pagination";
-    slices: Array<FormattingSettingsSlice> = [this.paginationEnabled, this.pagination];
+    slices: Array<FormattingSettingsSlice> = [this.paginationEnabled, this.pagination, this.paginationItemCount];
 }
 
 export class VisualFormattingSettingsModel extends FormattingSettingsModel {
