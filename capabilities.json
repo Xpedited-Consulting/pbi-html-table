@@ -171,6 +171,7 @@
         }
     },
     "sorting": {
+        "default": {},
         "custom": {} 
     },
     "advancedEditModeSupport": 2,
