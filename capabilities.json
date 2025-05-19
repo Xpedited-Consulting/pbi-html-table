@@ -40,19 +40,30 @@
     ],
     "objects": {
         "general": {
-            "displayName": "General",
+            "displayName": "Styling",
             "properties": {
-                "formatString": {
-                    "type": { "formatting": { "labelDisplayUnits": false } }
-                },
-                "js": {
+                "customCssEnabled": {
                     "type": {
-                        "text": true
+                        "bool": true
                     }
                 },
                 "css": {
+                    "displayName": "Custom CSS",
                     "type" : {
                         "text": true
+                    }
+                },
+                "_cssTextInput": {
+                    "type" : {
+                        "text": true
+                    }
+                },
+                "cssStrategy": {
+                    "type": {
+                        "enumeration":[
+                            { "value": "replace", "displayName": "Replaces default CSS" },
+                            { "value": "overwrite", "displayName": "Overwrites default CSS" }
+                        ]
                     }
                 }
             }
@@ -86,49 +97,22 @@
                 }
             }
         },
-        "colors" : {
-            "displayName": "Colors",
-            "properties": {
-                "color1": {
-                    "displayName": "Color 1",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color2": {
-                    "displayName": "Color 2",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color3": {
-                    "displayName": "Color 3",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color4": {
-                    "displayName": "Color 4",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color5": {
-                    "displayName": "Color 5",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color6": {
-                    "displayName": "Color 6",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color7": {
-                    "displayName": "Color 7",
-                    "type": { "fill": { "solid": { "color": true } } }
-                },
-                "color8": {
-                    "displayName": "Color 8",
-                    "type": { "fill": { "solid": { "color": true } } }
-                }
-            }
-        },
         "table": {
             "displayName": "Table",
             "properties": {
                 "sorting": {
                     "type": {
                         "bool": true
+                    }
+                },
+                "overflow": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "", "displayName": "Hidden" },
+                            { "value": "scrollX", "displayName": "Scroll horizontal" },
+                            { "value": "scrollY", "displayName": "Scroll vertical" },
+                            { "value": "scroll", "displayName": "Scroll" }
+                        ]
                     }
                 },
                 "dataSelectable": {
@@ -138,15 +122,27 @@
                 },
                 "header": {
                     "type": {
-                        "bool": true
+                        "enumeration":[
+                            { "value": "normal", "displayName": "Normal" },
+                            { "value": "sticky", "displayName": "Sticky" },
+                            { "value": "hidden", "displayName": "Hidden" }
+                        ]
                     }
                 },
                 "fallbackImage": {
+                    "displayName": "Fallback image URL",
                     "type": {
                         "text": true
+                    },
+                    "rule": {
+                        "inputRole": "dataset",
+                        "output": {
+                          "property": "fallbackImage"
+                        }
                     }
                 },
                 "emptyStateHtml": {
+                    "displayName": "Empty state HTML",
                     "type": {
                         "text": true
                     }
@@ -158,11 +154,13 @@
             "properties": {
                 "show": { "type": { "bool": true }},
                 "pageSize": {
+                    "displayName": "Page size",
                     "type": {
                         "integer": true
                     }
                 },
                 "paginationItemCount": {
+                    "displayName": "Number of pagination items",
                     "type": {
                         "integer": true
                     }

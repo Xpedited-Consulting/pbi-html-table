@@ -1,49 +1,29 @@
-/*
- *  Power BI Visualizations
- *
- *  Copyright (c) Microsoft Corporation
- *  All rights reserved.
- *  MIT License
- *
- *  Permission is hereby granted, free of charge, to any person obtaining a copy
- *  of this software and associated documentation files (the ""Software""), to deal
- *  in the Software without restriction, including without limitation the rights
- *  to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- *  copies of the Software, and to permit persons to whom the Software is
- *  furnished to do so, subject to the following conditions:
- *
- *  The above copyright notice and this permission notice shall be included in
- *  all copies or substantial portions of the Software.
- *
- *  THE SOFTWARE IS PROVIDED *AS IS*, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- *  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- *  FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- *  AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- *  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- *  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- *  THE SOFTWARE.
- */
 "use strict";
 
 import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 
 
 import FormattingSettingsModel = formattingSettings.Model;
-import FormattingSettingsCard = formattingSettings.Card;
+import FormattingSettingsCard = formattingSettings.SimpleCard;
 import FormattingSettingsSlice = formattingSettings.Slice;
 
-// TODO: fill all visual settings here
-class DataPointCardSettings extends FormattingSettingsCard {
-    fill = new formattingSettings.ColorPicker({
-        name: "fill", // Property name from capabilities.json
-        displayName: "Fill",
-        value: { value: "#000000" }
-    });
+const overflowItems = [
+    { "value": "", "displayName": "Hidden" },
+    { "value": "scrollX", "displayName": "Scroll horizontal" },
+    { "value": "scrollY", "displayName": "Scroll vertical" },
+    { "value": "scroll", "displayName": "Scroll" }
+];
 
-    name: string = "dataPoint"; // Object name from capabilities.json
-    displayName: string = "Data colors";
-    slices: Array<FormattingSettingsSlice> = [this.fill];
-}
+const headerVisibilityItems = [
+    { value: 'normal', displayName: 'Normal' },
+    { value: 'sticky', displayName: 'Sticky' },
+    { value: 'hidden', displayName: 'Hidden' },
+];
+
+const cssStrategyItems = [
+    { "value": "replace", "displayName": "Replaces default" },
+    { "value": "overwrite", "displayName": "Overwrites default" },
+]
 
 class TableSettings extends FormattingSettingsCard {
     sorting = new formattingSettings.ToggleSwitch({
@@ -52,11 +32,20 @@ class TableSettings extends FormattingSettingsCard {
         value: true
     });
 
-    header = new formattingSettings.ToggleSwitch({
+    header = new formattingSettings.ItemDropdown({
         name: "header",
-        displayName: "Header row visible",
-        description: "Toggle which indicates whether the table has a header row.",
-        value: true
+        displayName: "Header row",
+        description: "Visibility state of header.",
+        items: headerVisibilityItems,
+        value: headerVisibilityItems[0]
+    });
+
+    overflow = new formattingSettings.ItemDropdown({
+        name: "overflow",
+        displayName: "Overflow",
+        description: "Choose what happens to content when it is clipped by its container",
+        items: overflowItems,
+        value: overflowItems[0]
     });
 
     dataSelectable = new formattingSettings.ToggleSwitch({
@@ -85,19 +74,19 @@ class TableSettings extends FormattingSettingsCard {
 
     name: string = "table"; // Object name from capabilities.json
     displayName: string = "Table";
-    slices: Array<FormattingSettingsSlice> = [this.header, this.dataSelectable, this.sorting, this.fallbackImage, this.emptyStateHtml];
+    slices: Array<FormattingSettingsSlice> = [this.header, this.overflow, this.dataSelectable, this.sorting, this.fallbackImage, this.emptyStateHtml];
 }
 
 class PaginationSettings extends FormattingSettingsCard {
     paginationEnabled = new formattingSettings.ToggleSwitch({
         name: "show", // Property name from capabilities.json
         displayName: "Pagination",
-        topLevelToggle: true,
         value: false
     })
     paginationItemCount = new formattingSettings.NumUpDown({
         name: "paginationItemCount", // Property name from capabilities.json
-        displayName: "Pagination item count",
+        displayName: "Page navigation buttons",
+        description: "The number of page navigation buttons to render (exclusive of “next”/“previous” arrows)",
         options: {
             minValue: { value: 0, type: powerbi.visuals.ValidatorType.Min },
             maxValue: { value: 10, type: powerbi.visuals.ValidatorType.Max }
@@ -108,6 +97,7 @@ class PaginationSettings extends FormattingSettingsCard {
     pagination = new formattingSettings.NumUpDown({
         name: "pageSize", // Property name from capabilities.json
         displayName: "Page size",
+        description: "Number of results the table should show per page",
         options: {
             minValue: { value: 1, type: powerbi.visuals.ValidatorType.Min }
         },
@@ -115,15 +105,61 @@ class PaginationSettings extends FormattingSettingsCard {
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     })
 
+    topLevelSlice = this.paginationEnabled
     name: string = "pagination"; // Object name from capabilities.json
     displayName: string = "Pagination";
     slices: Array<FormattingSettingsSlice> = [this.paginationEnabled, this.pagination, this.paginationItemCount];
 }
 
-export class VisualFormattingSettingsModel extends FormattingSettingsModel {
+class GeneralSettings extends FormattingSettingsCard {
+    CustomStylingEnabled = new formattingSettings.ToggleSwitch({
+        name: "customCssEnabled", // Property name from capabilities.json
+        displayName: "Custom styling",
+        value: false
+    })
+
+    explanation = new formattingSettings.ReadOnlyText({
+        name: "explanation",
+        displayName: "ℹ️ Explanation",
+        value: "CSS can be edited through the Advanced Edit by clicking the three dots and selecting Edit",
+        description: "",
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.Constant,
+    });
+
+    cssStrategy = new formattingSettings.ItemDropdown({
+        name: "cssStrategy",
+        displayName: "How to apply the CSS",
+        description: "",
+        items: cssStrategyItems,
+        value: cssStrategyItems[1]
+    });
+
+    css = new formattingSettings.ReadOnlyText({
+        name: "css", // Property name from capabilities.json
+        displayName: "Custom CSS",
+        value: "",
+        description: "CSS can be edited through the Advanced Edit by clicking the three dots and selecting Edit",
+        instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
+    });
+
+    _cssTextInput = new formattingSettings.TextArea({
+        name: "_cssTextInput",
+        description: "Hidden input for storing Monaco editor input",
+        placeholder: "",
+        value: "",
+        visible: false
+    });
+
+    topLevelSlice = this.CustomStylingEnabled
+    name: string = "general"
+    displayName?: string = "Advanced styling"
+    slices?: Array<FormattingSettingsSlice> = [this._cssTextInput, this.CustomStylingEnabled, this.explanation, this.cssStrategy, this.css];
+}
+
+export default class VisualFormattingSettingsModel extends FormattingSettingsModel {
     // TODO: fill all visual settings here
-    public dataPointCardSettings: FormattingSettingsCard = new DataPointCardSettings();
     public tableSettings: TableSettings = new TableSettings();
     public paginationSettings: PaginationSettings = new PaginationSettings();
-    cards = [this.dataPointCardSettings, this.tableSettings, this.paginationSettings];
+    public generalSettings: GeneralSettings = new GeneralSettings();
+    cards = [this.generalSettings, this.tableSettings, this.paginationSettings];
 }

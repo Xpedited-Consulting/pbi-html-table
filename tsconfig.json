@@ -4,6 +4,7 @@
         "emitDecoratorMetadata": true,
         "experimentalDecorators": true,
         "target": "es2022",
+        "module": "es2022",
         "sourceMap": true,
         "outDir": "./.tmp/build/",
         "moduleResolution": "node",
@@ -15,5 +16,6 @@
     },
     "files": [
         "./src/visual.ts"
-    ]
+    ],
+    "types": ["powerbi-visuals-api"]
 }
