@@ -1,0 +1,40 @@
+name: Build and Package Power BI Visual
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Install Node.js (v18.x) using the official setup-node action
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18.x'
+
+      # 3. Install the Power BI Visuals Tools globally (pbiviz)
+      - name: Install Power BI Visuals Tools
+        run: npm install -g powerbi-visuals-tools
+
+      # 4. Install project-specific npm dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 5. Build the Power BI visual; this generates the .pbiviz file under dist/
+      - name: Build Power BI Visual
+        run: pbiviz package
+
+      # 6. Upload the generated .pbiviz file as an artifact for later download
+      - name: Upload pbiviz Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: pbi-visual-package
+          path: dist/*.pbiviz
