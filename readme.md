@@ -5,6 +5,11 @@ HTML Table View (Power BI Visual)
 
 * * * * *
 
+Support
+-------
+For questions or bug reports, open a new issue on [GitHub](https://github.com/Xpedited-Consulting/pbi-html-table/issues).  
+Describe the problem, steps to reproduce it, and include screenshots if possible.
+
 Overview
 --------
 

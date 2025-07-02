@@ -197,6 +197,7 @@ export class Visual implements IVisual {
                 .classed("sorted-asc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Ascending)
                 .classed("sorted-desc", d => d.queryName == _this.sortColumn && _this.sortDirection == powerbi.SortDirection.Descending)
                 .on('click', function(ev, d) { 
+                    
                     let queryName = d.queryName;
                     if (sortColumns) {
                         const alternativeSortKey = sortColumns.find(x => x.displayName == d.displayName);
@@ -241,6 +242,15 @@ export class Visual implements IVisual {
                         .classed("selected", (x: { selectionId: ISelectionId }) => _this.selectionManager.getSelectionIds().includes(x.selectionId));
                 }
             })
+            .on('contextmenu', (ev, d) => {
+                    const mouseEvent: MouseEvent = ev as MouseEvent;
+                    this.selectionManager.showContextMenu(d.selectionId, {
+                        x: ev.clientX,
+                        y: ev.clientY
+                    });
+                    mouseEvent.preventDefault();
+                }
+            )
             .selectAll("td")
             .data(d => 
                 d.row.map((r, idx) => {
