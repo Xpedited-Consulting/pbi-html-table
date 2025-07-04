@@ -48,7 +48,15 @@ export class Visual implements IVisual {
         this.selectionManager = options.host.createSelectionManager();
 
         this.target = select(options.element)
-            .classed("xpedited-default-styling", true);
+            .classed("xpedited-default-styling", true)
+            .on("contextmenu", (ev, _) => {
+                const mouseEvent: MouseEvent = ev as MouseEvent;
+                    this.selectionManager.showContextMenu(null, {
+                        x: ev.clientX,
+                        y: ev.clientY
+                    });
+                mouseEvent.preventDefault();
+            });
 
         this.resetHtml();
     }
@@ -242,13 +250,17 @@ export class Visual implements IVisual {
                         .classed("selected", (x: { selectionId: ISelectionId }) => _this.selectionManager.getSelectionIds().includes(x.selectionId));
                 }
             })
-            .on('contextmenu', (ev, d) => {
+            .on('contextmenu', async (ev, d) => {
                     const mouseEvent: MouseEvent = ev as MouseEvent;
-                    this.selectionManager.showContextMenu(d.selectionId, {
+                    mouseEvent.preventDefault();
+                    mouseEvent.stopPropagation();
+
+                    const newSelection = await _this.selectionManager.select(d.selectionId);
+
+                    await _this.selectionManager.showContextMenu(newSelection[0], {
                         x: ev.clientX,
                         y: ev.clientY
                     });
-                    mouseEvent.preventDefault();
                 }
             )
             .selectAll("td")
