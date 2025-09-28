@@ -120,6 +120,11 @@
                         "bool": true
                     }
                 },
+                "convertAnchors": {
+                    "type": {
+                        "bool": true
+                    }
+                },
                 "header": {
                     "type": {
                         "enumeration":[
