@@ -277,6 +277,22 @@ export class Visual implements IVisual {
             .append("td")
             .append(d => this.createElement(d));
 
+        if (this.formattingSettings.tableSettings.convertAnchors.value) {
+            (this.tBody.node() as HTMLElement)?.querySelectorAll("a").forEach(el => {
+                el.addEventListener("click", (ev) => {
+                    const target = ev.target as HTMLAnchorElement;
+                    try {
+                        if (target && target.href) {
+                            const url = new URL(target.href);
+                            ev.preventDefault();
+                            _this.host.launchUrl(url.href);
+                        }
+                    }
+                    catch {}
+                })
+            });
+        }
+
         if (this.formattingSettings.paginationSettings.paginationEnabled.value) {
             this.totalPages = Math.ceil(data.rows.length/this.formattingSettings.paginationSettings.pagination.value) - 1
             this.paginationControl

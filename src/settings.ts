@@ -55,6 +55,13 @@ class TableSettings extends FormattingSettingsCard {
         value: true
     });
 
+    convertAnchors = new formattingSettings.ToggleSwitch({
+        name: "convertAnchors",
+        displayName: "Support anchor links",
+        description: "Automatically convert anchor elements to support for opening in new window.",
+        value: true
+    });
+
     fallbackImage = new formattingSettings.TextInput({
         name: "fallbackImage", // Property name from capabilities.json
         displayName: "Fallback image",
@@ -74,7 +81,7 @@ class TableSettings extends FormattingSettingsCard {
 
     name: string = "table"; // Object name from capabilities.json
     displayName: string = "Table";
-    slices: Array<FormattingSettingsSlice> = [this.header, this.overflow, this.dataSelectable, this.sorting, this.fallbackImage, this.emptyStateHtml];
+    slices: Array<FormattingSettingsSlice> = [this.header, this.overflow, this.dataSelectable, this.convertAnchors, this.sorting, this.fallbackImage, this.emptyStateHtml];
 }
 
 class PaginationSettings extends FormattingSettingsCard {
