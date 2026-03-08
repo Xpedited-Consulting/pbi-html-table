@@ -18,7 +18,23 @@
             "kind": "GroupingOrMeasure",
             "description": "Columns matching the name in Dataset will use value given here as sort key. Example field with display name in dataset 'Price' can be formatted with currency sign and additional properties, such that it is interpreted by Power Bi as an string. The actual value however is a number, to ensure that sorting works based on that underlying value if the value backing field is part of this set and their display names are exactly matching this field will be used for sorting."
         }
+        ,
+        {
+            "displayName": "Tooltips (optional)",
+            "name": "tooltips",
+            "kind": "GroupingOrMeasure",
+            "description": "Additional fields to display in the tooltip when hovering cells."
+        }
     ],
+    "tooltips": {
+        "supportedTypes": {
+            "default": true,
+            "canvas": true
+        },
+        "roles": [
+            "tooltips"
+        ]
+    },
     "drilldown": {
         "roles": [ "identity" ]
     },
@@ -29,7 +45,8 @@
                     "select": [
                         { "for": { "in": "dataset" } },
                         { "bind": { "to": "identity" } },
-                        { "bind": { "to": "sort" } }
+                        { "bind": { "to": "sort" } },
+                        { "bind": { "to": "tooltips" } }
                     ],
                     "dataReductionAlgorithm": {
                         "top": { "count": 30000 }
@@ -168,6 +185,40 @@
                     "displayName": "Number of pagination items",
                     "type": {
                         "integer": true
+                    }
+                },
+                "showFirstPageButton": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "showLastPageButton": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "resetToFirstPageOnDataUpdate": {
+                    "type": {
+                        "bool": true
+                    }
+                },
+                "retainPageOnNavigation": {
+                    "type": {
+                        "bool": true
+                    }
+                }
+            }
+        },
+        "tooltip": {
+            "displayName": "Tooltips",
+            "properties": {
+                "tooltipMode": {
+                    "type": {
+                        "enumeration": [
+                            { "value": "standard", "displayName": "Standard" },
+                            { "value": "html", "displayName": "Custom HTML" },
+                            { "value": "reportPage", "displayName": "Report page" }
+                        ]
                     }
                 }
             }

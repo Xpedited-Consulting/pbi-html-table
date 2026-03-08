@@ -25,6 +25,12 @@ const cssStrategyItems = [
     { "value": "overwrite", "displayName": "Overwrites default" },
 ]
 
+const tooltipModeItems = [
+    { "value": "standard", "displayName": "Standard" },
+    { "value": "html", "displayName": "Custom HTML" },
+    { "value": "reportPage", "displayName": "Report page" }
+];
+
 class TableSettings extends FormattingSettingsCard {
     sorting = new formattingSettings.ToggleSwitch({
         name: "sorting", // Property name from capabilities.json
@@ -111,11 +117,53 @@ class PaginationSettings extends FormattingSettingsCard {
         value: 10,
         instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule
     })
+    showFirstPageButton = new formattingSettings.ToggleSwitch({
+        name: "showFirstPageButton",
+        displayName: "Jump to first button",
+        value: false
+    });
+    showLastPageButton = new formattingSettings.ToggleSwitch({
+        name: "showLastPageButton",
+        displayName: "Jump to last button",
+        value: false
+    });
+    resetToFirstPageOnDataUpdate = new formattingSettings.ToggleSwitch({
+        name: "resetToFirstPageOnDataUpdate",
+        displayName: "Reset to first on data update",
+        value: false
+    });
+    retainPageOnNavigation = new formattingSettings.ToggleSwitch({
+        name: "retainPageOnNavigation",
+        displayName: "Persist page on navigation",
+        value: false
+    });
 
     topLevelSlice = this.paginationEnabled
     name: string = "pagination"; // Object name from capabilities.json
     displayName: string = "Pagination";
-    slices: Array<FormattingSettingsSlice> = [this.paginationEnabled, this.pagination, this.paginationItemCount];
+    slices: Array<FormattingSettingsSlice> = [
+        this.paginationEnabled,
+        this.pagination,
+        this.paginationItemCount,
+        this.showFirstPageButton,
+        this.showLastPageButton,
+        this.resetToFirstPageOnDataUpdate,
+        this.retainPageOnNavigation
+    ];
+}
+
+class TooltipSettings extends FormattingSettingsCard {
+    tooltipMode = new formattingSettings.ItemDropdown({
+        name: "tooltipMode",
+        displayName: "Tooltip mode",
+        description: "Choose how tooltip role fields are shown.",
+        items: tooltipModeItems,
+        value: tooltipModeItems[0]
+    });
+
+    name: string = "tooltip";
+    displayName: string = "Tooltips";
+    slices: Array<FormattingSettingsSlice> = [this.tooltipMode];
 }
 
 class GeneralSettings extends FormattingSettingsCard {
@@ -167,6 +215,7 @@ export default class VisualFormattingSettingsModel extends FormattingSettingsMod
     // TODO: fill all visual settings here
     public tableSettings: TableSettings = new TableSettings();
     public paginationSettings: PaginationSettings = new PaginationSettings();
+    public tooltipSettings: TooltipSettings = new TooltipSettings();
     public generalSettings: GeneralSettings = new GeneralSettings();
-    cards = [this.generalSettings, this.tableSettings, this.paginationSettings];
+    cards = [this.generalSettings, this.tableSettings, this.paginationSettings, this.tooltipSettings];
 }
