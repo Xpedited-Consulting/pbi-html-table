@@ -1,23 +1,25 @@
 {
     "visual": {
-        "name":"pbihtmltable",
-        "displayName":"HTML table view",
-        "guid":"pbihtmltableFA26E5669EC54966B77CDF2A86CCFD32",
-        "visualClassName":"Visual",
-        "version":"1.0.0.3",
-        "description":"HTML table view",
-        "supportUrl":"https://github.com/Xpedited-Consulting/pbi-html-table/issues",
-        "gitHubUrl":"https://github.com/Xpedited-Consulting/pbi-html-table"
+        "name": "pbihtmltable",
+        "displayName": "HTML table view",
+        "guid": "pbihtmltableFA26E5669EC54966B77CDF2A86CCFD32",
+        "visualClassName": "Visual",
+        "version": "1.0.0.4",
+        "description": "HTML table view",
+        "supportUrl": "https://github.com/Xpedited-Consulting/pbi-html-table/issues",
+        "gitHubUrl": "https://github.com/Xpedited-Consulting/pbi-html-table"
     },
-    "apiVersion":"5.1.0",
-    "author":{
+    "apiVersion": "5.1.0",
+    "author": {
         "name": "Martijn Lentink",
         "email": "powerbi-gallery@xpedited.nl"
     },
-    "assets":{"icon":"assets/icon.png"},
-    "externalJS":[],
-    "style":"style/visual.less",
-    "capabilities":"capabilities.json",
-    "dependencies":"dependencies.json",
-    "stringResources":[]
+    "assets": {
+        "icon": "assets/icon.png"
+    },
+    "externalJS": [],
+    "style": "style/visual.less",
+    "capabilities": "capabilities.json",
+    "dependencies": "dependencies.json",
+    "stringResources": []
 }
